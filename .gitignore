@@ -1,0 +1,19 @@
+# Virtual Environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Editor directories
+.vscode/
+.idea/
+
+# StormQA cache file
+.stormqa_cache.json
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

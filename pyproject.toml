@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stormqa"
+version = "0.1.0"
+description = "⚡️ A zero-config, powerful tool for Load, Network, and DB testing."
+requires-python = ">=3.8"
+
+authors = [
+    { name = "Pouya Rezapour", email = "pouyarezapourr@gmail.com" }
+]
+
+dependencies = [
+    "typer[all]",
+    "httpx",
+    "flet",
+    "fpdf2",
+    "rich"
+]
+
+[project.scripts]
+stormqa = "stormqa.main:app"
