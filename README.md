@@ -40,7 +40,6 @@ Install the latest version of StormQA directly from PyPI.
 ```bash
 pip install --upgrade stormqa
 ```
-![StormQA GUI Screenshot](./assets/gui_screenshot.png)
 ---
 
 ## 🎯 Getting Started
@@ -54,6 +53,7 @@ For a visual and interactive experience, launch the GUI with a simple command:
 ```bash
 stormqa open
 ```
+![StormQA GUI Screenshot](./assets/gui_screenshot.png)
 
 
 

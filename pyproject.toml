@@ -1,24 +1,40 @@
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "stormqa"
-version = "0.1.0"
-description = "⚡️ A zero-config, powerful tool for Load, Network, and DB testing."
-requires-python = ">=3.8"
-
+version = "1.0.0" 
 authors = [
-    { name = "Pouya Rezapour", email = "pouyarezapourr@gmail.com" }
+  { name="Pouya Rezapour", email="pouyarezapourr@gmail.com" },
 ]
-
+description = "⚡️ A zero-config, powerful tool for Load, Network, and DB testing with both CLI and GUI."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" } 
+keywords = ["testing", "qa", "load testing", "performance", "automation", "developer tools"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Testing",
+    "Topic :: System :: Benchmark",
+    "Environment :: Console",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: MacOS X",
+]
 dependencies = [
     "typer[all]",
     "httpx",
     "flet",
     "fpdf2",
-    "rich"
+    "rich",
 ]
 
 [project.scripts]
 stormqa = "stormqa.main:app"
+
+[project.urls]
+Homepage = "https://github.com/pouyarer/StormQa"
+Repository = "https://github.com/pouyarer/StormQa"
