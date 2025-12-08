@@ -6,22 +6,24 @@ from typing_extensions import Annotated
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
+from rich.live import Live
 
-from stormqa.core.loader import run_load_test
-from stormqa.core.network_sim import run_network_test 
-from stormqa.core.db_sim import run_db_test
+from stormqa.core.loader import LoadTestEngine
+from stormqa.core.network_sim import run_network_check, NETWORK_PROFILES
+from stormqa.core.db_sim import run_smart_db_test
 from stormqa.reporters.main_reporter import generate_report
 from stormqa.ui.app import launch as launch_gui
 
 app = typer.Typer(
-    help="StormQA: The ultimate testing tool.",
+    help="StormQA Enterprise CLI v2.0",
     rich_markup_mode="rich"
 )
 CACHE_FILE = Path(".stormqa_cache.json")
 console = Console()
 
-# Cache helpers
+# --- Cache Helpers ---
 def write_to_cache(key: str, data: dict):
     if CACHE_FILE.exists():
         try:
@@ -42,172 +44,141 @@ def read_from_cache() -> dict:
     with open(CACHE_FILE, "r") as f:
         return json.load(f)
 
+# --- Commands ---
 
 @app.command()
 def start():
-    """
-    🌟 Shows a welcome message and a detailed guide of commands.
-    """
-    console.print(
-        Panel(
-            Text("⚡️ Welcome to StormQA ⚡️", justify="center", style="bold cyan"),
-            subtitle="The ultimate, zero-config testing tool for developers.",
-            padding=(1, 2)
-        )
-    )
-
-    console.print(
-        Panel(
-            Text.from_markup(
-                "For the best experience, launch the graphical user interface:\n\n"
-                "[bold green]stormqa open[/bold green]",
-                justify="center"
-            ),
-            title="🚀 Recommended Start",
-            border_style="green",
-            padding=1
-        )
-    )
-
-    console.print("\n[bold]CLI Commands Guide:[/bold]")
-
-    # Load Test
-    load_content = """
-[cyan]stormqa load [SITE_URL][/cyan]
-
-Runs a performance load test to measure your server's capabilities.
-
-[bold yellow]--concurrency[/bold yellow]: Simultaneous Users
-[italic]Analogy: Imagine a restaurant with 5 cashiers. Concurrency is how many customers are ordering [bold]at the exact same moment[/bold]. If concurrency=5, all cashiers are busy. If concurrency=20, 15 customers are waiting in line, increasing their response time (latency).[/italic]
-
-[bold yellow]--requests[/bold yellow]: Total Number of Requests
-[italic]Analogy: This is the total number of customers visiting your restaurant during a specific period. It's the total workload your server must handle.[/italic]
-    """
-    console.print(Panel(Text.from_markup(load_content.strip()), title="🚀 Load & Stress Test", border_style="yellow", padding=(1, 2)))
-
-    # Network Test
-    network_content = """
-[cyan]stormqa network [SITE_URL][/cyan]
-
-Simulates poor or unstable network conditions.
-
-[bold yellow]--latency[/bold yellow]: Latency (Ping)
-[italic]Analogy: Latency is like the physical distance to the server. The further away, the longer it takes for your request to arrive and the response to come back. This parameter simulates that delay in milliseconds.[/italic]
-
-[bold yellow]--packet-loss[/bold yellow]: Packet Loss Percentage
-[italic]Analogy: On an unstable network (like mobile internet), some data packets get lost. This parameter simulates the percentage of your requests that never reach their destination.[/italic]
-    """
-    console.print(Panel(Text.from_markup(network_content.strip()), title="🌐 Network Test", border_style="magenta", padding=(1, 2)))
-
-    # DB Test
-    db_content = "[cyan]stormqa db [SITE_URL][/cyan]\n\nAutomatically discovers and tests common API endpoints to check backend health."
-    console.print(Panel(Text.from_markup(db_content), title="🗄️ DB Test", border_style="blue"))
-    
-    # Report
-    report_content = "[cyan]stormqa report[/cyan]\n\nGenerates a consolidated JSON/CSV/PDF report from the last test runs."
-    console.print(Panel(Text.from_markup(report_content), title="💾 Report", border_style="red"))
-
-    # Open GUI
-    open_content = "[cyan]stormqa open[/cyan]\n\nLaunches the graphical user interface (GUI)."
-    console.print(Panel(Text.from_markup(open_content), title="🎨 Open GUI", border_style="green"))
-
+    """🌟 Shows welcome message and guide."""
+    console.print(Panel(
+        Text("⚡️ StormQA Enterprise v2.0 ⚡️", justify="center", style="bold cyan"),
+        subtitle="The Masterpiece Testing Tool",
+        padding=(1, 2)
+    ))
+    console.print("\n[bold]Available Commands:[/bold]")
+    console.print("  [green]stormqa open[/green]       -> Launch the GUI (Recommended)")
+    console.print("  [green]stormqa load[/green]       -> Run a quick load test")
+    console.print("  [green]stormqa network[/green]    -> Simulate network conditions")
+    console.print("  [green]stormqa db[/green]         -> Discovery or Flood DB endpoints")
 
 @app.command()
 def open():
-    """🎨 Launches the graphical user interface (GUI)."""
-    console.print("🎨 Launching StormQA GUI...", style="green")
+    """🎨 Launches the Graphical User Interface (GUI)."""
+    console.print("[bold green]🚀 Launching StormQA Interface...[/bold green]")
     launch_gui()
 
 @app.command()
 def load(
-    site: Annotated[str, typer.Argument(help="The target site URL to test.")],
-    requests: Annotated[int, typer.Option(help="Total number of requests to send.")] = 50,
-    concurrency: Annotated[int, typer.Option(help="Number of concurrent requests.")] = 10,
+    url: Annotated[str, typer.Argument(help="Target URL")],
+    users: Annotated[int, typer.Option(help="Max concurrent users")] = 10,
+    duration: Annotated[int, typer.Option(help="Test duration in seconds")] = 30,
+    ramp: Annotated[int, typer.Option(help="Ramp-up time in seconds")] = 5,
+    think: Annotated[float, typer.Option(help="Think time in seconds")] = 0.5,
 ):
-    """🚀 Runs a load test with advanced performance metrics."""
-    typer.secho("--- StormQA Load Test ---", fg=typer.colors.CYAN, bold=True)
-    typer.echo(f"🎯 Target: {site}")
-    typer.echo(f"🔄 Total Requests: {requests}")
-    typer.echo(f"👥 Concurrency: {concurrency}")
+    """🚀 Run a Load Test Scenario."""
+    if not url.startswith("http"): url = f"http://{url}"
     
-    summary = asyncio.run(run_load_test(url=site, requests_count=requests, concurrency=concurrency))
-    
-    typer.secho("\n--- Test Results ---", fg=typer.colors.CYAN, bold=True)
-    typer.secho("\n📊 Performance Summary:", bold=True)
-    typer.echo(f"   - Total Time: {summary['total_duration_sec']:.2f} seconds")
-    typer.echo(f"   - Throughput (RPS): {summary['throughput_rps']:.2f} req/sec")
-    typer.secho("\n⏱️ Response Time (ms):", bold=True)
-    typer.secho(f"   - Average: {summary['avg_response_time_ms']:.2f} ms", fg=typer.colors.GREEN)
-    typer.secho(f"   - Minimum: {summary['min_response_time_ms']:.2f} ms", fg=typer.colors.BLUE)
-    typer.secho(f"   - Maximum: {summary['max_response_time_ms']:.2f} ms", fg=typer.colors.YELLOW)
-    typer.secho("\n📈 Request Status:", bold=True)
-    typer.secho(f"   - Successful: {summary['successful_requests']}", fg=typer.colors.GREEN)
-    typer.secho(f"   - Failed: {summary['failed_requests']}", fg=typer.colors.RED)
-    typer.secho(f"   - Error Rate: {summary['error_rate_percent']:.2f} %", fg=typer.colors.RED if summary['error_rate_percent'] > 0 else typer.colors.WHITE)
-    typer.secho("--------------------------", fg=typer.colors.CYAN, bold=True)
-    
-    write_to_cache("loadTest", summary)
-    typer.echo("💾 Results saved for reporting.")
+    console.print(f"[bold cyan]⚡ Starting Load Test on {url}[/bold cyan]")
+    console.print(f"   Config: {users} Users | {duration}s Duration | {ramp}s Ramp | {think}s Think")
 
+    step = {
+        "users": users,
+        "duration": duration,
+        "ramp": ramp,
+        "think": think
+    }
+    
+    engine = LoadTestEngine()
+    
+    def cli_callback(stats):
+        if int(stats['rps']) % 5 == 0:
+            msg = f"   >> Active Users: {stats['users']} | RPS: {stats['rps']:.1f} | Latency: {stats['avg_latency']:.0f}ms"
+
+            print(msg, end="\r")
+
+    try:
+        summary = asyncio.run(engine.start_scenario(url, [step], cli_callback))
+        
+        print(" " * 100)  
+        console.print("\n[bold green]✅ Test Completed Successfully![/bold green]")
+        
+        table = Table(title="Execution Summary", show_header=True, header_style="bold magenta")
+        table.add_column("Metric", style="cyan")
+        table.add_column("Value", style="white")
+        
+        table.add_row("Total Requests", str(summary['total_requests']))
+        table.add_row("Successful", f"[green]{summary['successful_requests']}[/green]")
+        table.add_row("Failed", f"[red]{summary['failed_requests']}[/red]")
+        table.add_row("Avg Response Time", f"{summary['avg_response_time_ms']:.2f} ms")
+        table.add_row("Throughput", f"{summary['throughput_rps']:.2f} req/s")
+        
+        console.print(table)
+        write_to_cache("loadTest", summary)
+        
+    except Exception as e:
+        console.print(f"\n[bold red]❌ Critical Error:[/bold red] {e}")
 
 @app.command()
 def network(
-    site: Annotated[str, typer.Argument(help="The target site URL to test.")],
-    latency: Annotated[int, typer.Option(help="Simulated latency in milliseconds.")] = 200,
-    packet_loss: Annotated[float, typer.Option(help="Simulated packet loss in percentage (0-100).")] = 5.0,
+    url: Annotated[str, typer.Argument(help="Target URL")],
+    profile: Annotated[str, typer.Option(help=f"Profile: {', '.join(NETWORK_PROFILES.keys())}")] = "4G_LTE"
 ):
-    """🌐 Simulates network conditions like latency and packet loss."""
-    typer.secho("--- StormQA Network Test ---", fg=typer.colors.MAGENTA, bold=True)
-    typer.echo(f"🎯 Target: {site}")
-    typer.echo(f"⏱️ Simulating Latency: {latency} ms")
-    typer.echo(f"📉 Simulating Packet Loss: {packet_loss} %")
-
-    summary = asyncio.run(run_network_test(url=site, latency_ms=latency, packet_loss_percent=packet_loss))
-
-    typer.secho("\n--- Test Results ---", fg=typer.colors.MAGENTA, bold=True)
-    if summary["request_successful"]:
-        typer.secho("✅ Request was successful under simulated conditions.", fg=typer.colors.GREEN)
-    else:
-        typer.secho("❌ Request failed under simulated conditions.", fg=typer.colors.RED)
-    typer.secho("--------------------------", fg=typer.colors.MAGENTA, bold=True)
+    """🌐 Run Network Simulation Check."""
+    if not url.startswith("http"): url = f"http://{url}"
     
-    write_to_cache("networkTest", summary)
-    typer.echo("💾 Results saved for reporting.")
-
+    console.print(f"[bold magenta]🌐 Checking Network: {url} (Profile: {profile})[/bold magenta]")
+    
+    with console.status("[bold green]Ping/Tracing...[/bold green]"):
+        res = asyncio.run(run_network_check(url, profile))
+    
+    if res['status'] == 'success':
+        console.print(f"[green]✅ Connection Established[/green]")
+        console.print(f"   Simulated Latency: [bold]{res['simulated_delay']} ms[/bold]")
+        console.print(f"   Real Network Time: {res['real_network_time']:.2f} ms")
+    else:
+        console.print(f"[bold red]❌ Connection Failed:[/bold red] {res.get('message')}")
+    
+    write_to_cache("networkTest", res)
 
 @app.command()
 def db(
-    site: Annotated[str, typer.Argument(help="The base site or API URL to test.")],
+    url: Annotated[str, typer.Argument(help="Base URL")],
+    mode: Annotated[str, typer.Option(help="Mode: 'discovery' or 'connection_flood'")] = "discovery"
 ):
-    """🗄️ Runs an automatic, simulated database performance test."""
-    typer.secho("--- StormQA Simulated DB Test ---", fg=typer.colors.BLUE, bold=True)
-    typer.echo(f"🎯 Target: {site}")
-
-    summary = asyncio.run(run_db_test(base_url=site))
-
-    typer.secho("\n--- DB Test Summary ---", fg=typer.colors.BLUE, bold=True)
-    if summary["total_simulated_tx"] == 0:
-        typer.secho("⚠️ No common API patterns found to simulate.", fg=typer.colors.YELLOW)
-    else:
-        typer.echo(f"   - Simulated Transactions: {summary['total_simulated_tx']}")
-        typer.secho(f"   - Success: {summary['successful_tx']}", fg=typer.colors.GREEN)
-        typer.secho(f"   - Failed: {summary['failed_tx']}", fg=typer.colors.RED)
-        typer.echo(f"   - Avg Response Time: {summary['avg_response_time_ms']:.2f} ms")
-    typer.secho("---------------------------------", fg=typer.colors.BLUE, bold=True)
+    """🗄️ Run Database API Tests."""
+    if not url.startswith("http"): url = f"http://{url}"
     
-    write_to_cache("dbTest", summary)
-    typer.echo("💾 Results saved for reporting.")
-
+    console.print(f"[bold blue]🗄️ Running DB Test ({mode}): {url}[/bold blue]")
+    
+    with console.status("[bold yellow]Scanning endpoints...[/bold yellow]"):
+        res = asyncio.run(run_smart_db_test(url, mode))
+    
+    if mode == "discovery":
+        if res['count'] > 0:
+            console.print(f"[green]✅ Found {res['count']} endpoints:[/green]")
+            for ep in res['endpoints_found']:
+                console.print(f"   - {ep}")
+        else:
+            console.print("[yellow]⚠️ No common DB endpoints found (Secure or Custom paths).[/yellow]")
+    else:
+        console.print(f"   Attempts: {res['attempted_connections']}")
+        console.print(f"   Held Successfully: [green]{res['held_successfully']}[/green]")
+        console.print(f"   Dropped/Failed: [red]{res['dropped_or_timeout']}[/red]")
+    
+    write_to_cache("dbTest", res)
 
 @app.command()
 def report(
     format: Annotated[str, typer.Option(help="Output format: json or csv.")] = "json"
 ):
-    """💾 Generates a consolidated report of the latest test runs."""
+    """💾 Generates a consolidated report from the last test run."""
     cache_data = read_from_cache()
     if not cache_data:
-        typer.secho("⚠️ No test results found to report. Please run a test first.", fg=typer.colors.YELLOW)
+        console.print("[yellow]⚠️ No test results found to report. Run a test first.[/yellow]")
         raise typer.Exit()
-        
-    message = generate_report(cache_data, format)
-    typer.secho(message, fg=typer.colors.GREEN)
+    
+    filename = f"StormQA_CLI_Report.{format}"
+    message = generate_report(cache_data, filename)
+    console.print(f"[green]{message}[/green]")
+
+if __name__ == "__main__":
+    app()
