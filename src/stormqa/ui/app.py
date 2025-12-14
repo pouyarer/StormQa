@@ -313,7 +313,7 @@ class StormQaApp(ctk.CTk):
         self.steps_box.pack(fill="x", padx=10, pady=5)
         cols = ctk.CTkFrame(self.steps_box, fg_color="#222", height=25)
         cols.pack(fill="x")
-        for t, w in [("#", 30), ("Users", 80), ("Duration", 80), ("Ramp", 80), ("Think", 80)]:
+        for t, w in [("#", 30), ("Users", 80), ("Duration (s)", 80), ("Ramp (s)", 80), ("Think (s)", 80)]:
             ctk.CTkLabel(cols, text=t, width=w, font=("Arial", 10, "bold"), text_color="gray").pack(side="left", padx=5)
         self._add_step() 
 
