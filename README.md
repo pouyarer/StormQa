@@ -1,33 +1,53 @@
 <div align="center">
 
-# ⚡ StormQA (v2.0)
+<img src="./storm_logo.png" alt="StormQA Logo" width="300"/>
 
-**Professional Performance & Security Testing Suite.**
+# ⚡ StormQA (v2.1)
+
+**The Modern Load Testing Suite for Professionals.**
 <br>
-*Zero-config. Real-time Monitoring. Comprehensive Reporting.*
+*Zero-Config. cURL Import. Real-time Analytics.*
 
 [![PyPI version](https://img.shields.io/pypi/v/stormqa?color=007EC6&label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/stormqa/)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Downloads](https://img.shields.io/pypi/dm/stormqa?color=green&label=Downloads&logo=pypi&logoColor=white)](https://pypi.org/project/stormqa/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
 
 ---
 
-## 📋 Requirements
+## 🌪️ What is StormQA?
 
-Before running StormQA, ensure you have the following installed:
-* **Python 3.8** or higher.
-* **pip** (Python Package Installer).
-* No complex drivers or external databases are required.
+**Forget the complexity of JMeter. Forget the boilerplate of k6.**
+
+StormQA v2.1 is designed for developers and QA engineers who need **immediate power**. We believe that load testing shouldn't require writing hundreds of lines of code. With StormQA, you can simulate heavy traffic, analyze server bottlenecks, and verify API health in seconds, not hours.
+
+> **"Pour the coffee, paste the cURL, and let the storm begin."**
 
 ---
 
-## 🚀 Introducing StormQA v2.0
+## 🔥 New in v2.1: The Game Changers
 
-StormQA v2.0 represents a major leap forward from basic scripting. It is designed to be the ultimate "Zero-Configuration" testing tool for developers and QA engineers who need immediate results without writing boilerplate code.
+We listened to the community. Version 2.1 introduces features that bridge the gap between simple pingers and enterprise-grade testing tools.
 
-Whether you are stress-testing a new API deployment, checking network resilience, or auditing database endpoints, StormQA provides a unified, modern interface to get the job done.
+### 📋 1. Magic cURL Import (New!)
+Stop manually typing headers and bodies.
+* **Copy** a request as cURL from your browser's Network tab.
+* **Paste** it into StormQA.
+* **Done.** We automatically parse the URL, Method, Headers, Cookies, and Body JSON for you.
+
+### 🛠️ 2. Full HTTP Method Support
+StormQA is no longer just for GET requests. We now fully support:
+* `GET` - Retrieve data.
+* `POST` - Create resources (JSON body support).
+* `PUT` - Update existing data.
+* `DELETE` - Remove resources.
+
+### ✅ 3. Smart Assertions
+Traffic is meaningless if the responses are wrong.
+* Define a keyword (e.g., `"success": true` or `token`).
+* StormQA will mark any response missing that keyword as a **Failure**, even if the HTTP status is 200.
 
 ---
 
@@ -38,11 +58,10 @@ The heart of StormQA is its powerful **Load Testing Engine**. It allows you to s
 ![Load Testing Dashboard](./assets/dashboard_hero.png)
 
 ### Key Capabilities:
-
-* **Visual Scenario Builder:** Define your test logic instantly. Set the number of **Users**, test **Duration**, **Ramp-up** time (to simulate gradual traffic increase), and **Think Time** (to mimic human pauses).
-* **Real-time Traffic Monitor:** Unlike traditional tools that provide post-test data, StormQA features a live, high-precision graph that visualizes active users and throughput (RPS) second-by-second.
-* **Live Metrics Sidebar:** Monitor critical health indicators—Active Users, Requests Per Second (RPS), Average Latency, and Error Counts—directly from the sidebar.
-* **PDF Reporting:** With a single click, generate a detailed PDF report containing execution summaries, pass/fail criteria, and performance metrics for stakeholders.
+* **Visual Scenario Builder:** Define your test logic instantly. Set the number of **Users**, test **Duration**, **Ramp-up** time, and **Think Time**.
+* **CyberChart™ Monitor:** Unlike traditional tools that provide post-test data, StormQA features a live, high-precision graph that visualizes active users and throughput (RPS) second-by-second.
+* **Live Metrics Sidebar:** Monitor critical health indicators—Active Users, Requests Per Second (RPS), Average Latency, and Error Counts.
+* **PDF Reporting:** With a single click, generate a detailed PDF report containing execution summaries and performance metrics.
 
 ---
 
@@ -51,7 +70,7 @@ The heart of StormQA is its powerful **Load Testing Engine**. It allows you to s
 StormQA goes beyond load testing by integrating essential infrastructure diagnostics.
 
 ### 🌐 Network Simulation
-Test how your application performs under unstable or slow network conditions. This module allows you to inject artificial latency and connection issues to ensure your app remains robust for users with poor connectivity.
+Test how your application performs under unstable or slow network conditions. Inject artificial latency to ensure robustness.
 
 ![Network Simulation](./assets/network_sim.png)
 
@@ -63,9 +82,8 @@ A dedicated module for backend discovery and stability testing.
 
 ![Database Testing](./assets/db_test.png)
 
-* **Smart Endpoint Discovery:** Automatically scans for common and hidden API endpoints (e.g., `/api/admin`, `/wp-json`, `/health`) using intelligent user-agent spoofing to bypass basic filters.
-* **Redirect Handling:** Smartly follows HTTP 301/302 redirects to identify the true destination of an endpoint.
-* **Connection Flood:** Performs a stress test on your database connection pool to ensure it can handle a burst of concurrent connection attempts.
+* **Smart Endpoint Discovery:** Automatically scans for common API endpoints using intelligent user-agent spoofing.
+* **Connection Flood:** Performs a stress test on your database connection pool to ensure it can handle concurrent bursts.
 
 ---
 
@@ -100,13 +118,48 @@ pip install --upgrade stormqa
 
 ## 🎯 Getting Started
 
-### Graphical User Interface (GUI)
-For the full experience, launch the graphical interface:
+### 🚀 Usage
+Launch the modernized graphical interface:
 ```bash
 stormqa open
 ```
 
+Once the interface loads:
+
+Select Method: Choose GET, POST, PUT, or DELETE.
+
+Target: Enter URL or use the "Import cURL" button.
+
+Config: Set your desired user load (e.g., 50 users).
+
+Start: Click "START STORM ⚡" and watch the metrics fly.
+
 ---
+
+## 🔮 Roadmap: Coming Soon (v2.2)
+We are already working on the next big thing:
+🗂️ Test Collections: Save, organize, and load your favorite test scenarios.
+🔄 Chain Requests: Use the output of one request (like a token) as the input for the next.
+and updated CLI Commands
+
+---
+
+## Enjoying StormQA?
+Consider supporting the development or starring the repo!
+
+<div align="center">
+
+<br>
+
+### ❤️ Support the Development
+
+[**💎 Donate & Support**](https://pay.oxapay.com/14009511/156840325)
+
+<br>
+
+Powered by Testeto | Developed by [**Pouya Rezapour**](https://pouyarezapour.ir)
+
+</div>
 
 ## 📚 CLI Command Reference
 
