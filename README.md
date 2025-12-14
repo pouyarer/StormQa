@@ -10,7 +10,6 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/stormqa?color=007EC6&label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/stormqa/)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![Downloads](https://img.shields.io/pypi/dm/stormqa?color=green&label=Downloads&logo=pypi&logoColor=white)](https://pypi.org/project/stormqa/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
