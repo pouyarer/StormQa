@@ -152,14 +152,11 @@ class StormQaApp(ctk.CTk):
         
         # --- LOGO SECTION (FIXED PATH) ---
         try:
-            # پیدا کردن مسیر دقیق فایلی که الان باز است
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            # چسباندن نام عکس به آن مسیر
             img_path = os.path.join(current_dir, "storm_logo.png")
             
             pil_img = Image.open(img_path)
             
-            # تنظیم سایز (عرض، ارتفاع) - این را بسته به شکل لوگویت تنظیم کن
             my_logo = ctk.CTkImage(light_image=pil_img, 
                                    dark_image=pil_img, 
                                    size=(100, 70))
@@ -167,7 +164,6 @@ class StormQaApp(ctk.CTk):
             ctk.CTkLabel(self.sidebar, text="", image=my_logo).pack(pady=(40, 5))
             
         except Exception as e:
-            # چاپ خطای دقیق‌تر برای دیباگ
             print(f"Logo Error: {e}")
             ctk.CTkLabel(self.sidebar, text="STORM QA", font=("Impact", 35), text_color=C_NEON).pack(pady=(40, 5))
         # ---------------------------------
@@ -193,7 +189,7 @@ class StormQaApp(ctk.CTk):
                                         text_color=C_GOLD,
                                         hover_color="#333",
                                         cursor="hand2",
-                                        command=lambda: webbrowser.open("https://pay.oxapay.com/14009511/156840325"))
+                                        command=lambda: webbrowser.open("https://pay.oxapay.com/14009511/130771677"))
         self.btn_donate.pack(pady=10)
 
         footer = ctk.CTkFrame(self.sidebar, fg_color="transparent")
