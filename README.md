@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./storm_logo.png" alt="StormQA Logo" width="300"/>
+<img src="./src/stormqa/ui/storm_logo.png" alt="StormQA Logo" width="300"/>
 
 # ⚡ StormQA (v2.1)
 
