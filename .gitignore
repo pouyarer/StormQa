@@ -1,19 +1,54 @@
-# Virtual Environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
 venv/
 .venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Python cache
-__pycache__/
-*.pyc
+src/stormqa/ui/node_modules/
+src/stormqa/ui/npm-debug.log*
+src/stormqa/ui/yarn-debug.log*
+src/stormqa/ui/yarn-error.log*
+src/stormqa/ui/.pnp*
+src/stormqa/ui/build/
+src/stormqa/ui/dist/
+src/stormqa/ui/.env
+src/stormqa/ui/.DS_Store
 
-# Editor directories
-.vscode/
-.idea/
+*.db
+stormqa_history.db
 
-# StormQA cache file
 .stormqa_cache.json
 
-# Build artifacts
-dist/
-build/
-*.egg-info/
+*.pdf
+StormQA_Report_*.pdf
+
+*.sqa
+
+.DS_Store
+.DS_Store?
+._*
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/
+.idea/
+*.swp

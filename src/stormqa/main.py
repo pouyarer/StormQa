@@ -1,6 +1,7 @@
 import typer
 import asyncio
 import json
+import os
 from pathlib import Path
 from typing_extensions import Annotated
 
@@ -9,15 +10,18 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich.live import Live
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from stormqa.core.loader import LoadTestEngine
 from stormqa.core.network_sim import run_network_check, NETWORK_PROFILES
 from stormqa.core.db_sim import run_smart_db_test
+from stormqa.core.ws_engine import run_websocket_test  # اضافه شده
 from stormqa.reporters.main_reporter import generate_report
-from stormqa.ui.app import launch as launch_gui
+
+from stormqa.ui.app import start_gui
 
 app = typer.Typer(
-    help="StormQA Enterprise CLI v2.0",
+    help="⚡ StormQA CLI v3",
     rich_markup_mode="rich"
 )
 CACHE_FILE = Path(".stormqa_cache.json")
@@ -50,21 +54,24 @@ def read_from_cache() -> dict:
 def start():
     """🌟 Shows welcome message and guide."""
     console.print(Panel(
-        Text("⚡️ StormQA Enterprise v2.0 ⚡️", justify="center", style="bold cyan"),
-        subtitle="The Masterpiece Testing Tool",
-        padding=(1, 2)
+        Text("⚡️ StormQA v3 ⚡️", justify="center", style="bold cyan"),
+        subtitle="The Ultimate Testing Platform (React + Python Core)",
+        padding=(1, 2),
+        style="on #0f172a"
     ))
     console.print("\n[bold]Available Commands:[/bold]")
-    console.print("  [green]stormqa open[/green]       -> Launch the GUI (Recommended)")
-    console.print("  [green]stormqa load[/green]       -> Run a quick load test")
-    console.print("  [green]stormqa network[/green]    -> Simulate network conditions")
-    console.print("  [green]stormqa db[/green]         -> Discovery or Flood DB endpoints")
+    console.print("  [green]stormqa open[/green]       -> Launch the Modern UI (React/Webview)")
+    console.print("  [cyan]stormqa load[/cyan]       -> Run Load Test (Supports Chaos & Thresholds)")
+    console.print("  [magenta]stormqa ws[/magenta]         -> Run WebSocket Stress Test")
+    console.print("  [blue]stormqa network[/blue]    -> Simulate network conditions")
+    console.print("  [yellow]stormqa db[/yellow]         -> Discovery or Flood DB endpoints")
+    console.print("  [white]stormqa report[/white]     -> Generate Professional PDF Report")
 
 @app.command()
 def open():
-    """🎨 Launches the Graphical User Interface (GUI)."""
-    console.print("[bold green]🚀 Launching StormQA Interface...[/bold green]")
-    launch_gui()
+    """🎨 Launches the Modern Graphical User Interface (React)."""
+    console.print("[bold green]🚀 Launching StormQA...[/bold green]")
+    start_gui()
 
 @app.command()
 def load(
@@ -73,12 +80,24 @@ def load(
     duration: Annotated[int, typer.Option(help="Test duration in seconds")] = 30,
     ramp: Annotated[int, typer.Option(help="Ramp-up time in seconds")] = 5,
     think: Annotated[float, typer.Option(help="Think time in seconds")] = 0.5,
+
+    chaos: Annotated[bool, typer.Option(help="Enable Chaos Injection (Failure Simulation)")] = False,
+    chaos_rate: Annotated[int, typer.Option(help="Chaos Rate (1-100%)")] = 10,
+    chaos_type: Annotated[str, typer.Option(help="Chaos Type: 'latency' or 'exception'")] = "latency",
+
+    thresholds: Annotated[str, typer.Option(help="Pass/Fail Rules e.g. 'p95<500,error<1'")] = None
 ):
-    """🚀 Run a Load Test Scenario."""
+    """🚀 Run a Load Test Scenario (Headless Mode with Chaos Support)."""
     if not url.startswith("http"): url = f"http://{url}"
     
-    console.print(f"[bold cyan]⚡ Starting Load Test on {url}[/bold cyan]")
-    console.print(f"   Config: {users} Users | {duration}s Duration | {ramp}s Ramp | {think}s Think")
+    console.print(f"[bold cyan]⚡ Starting Headless Load Test on {url}[/bold cyan]")
+    
+    chaos_config = {"enabled": chaos, "rate": chaos_rate, "type": chaos_type}
+    if chaos:
+        console.print(f"[bold red]🔥 Chaos Injection Active:[/bold red] Type={chaos_type}, Rate={chaos_rate}%")
+    
+    if thresholds:
+        console.print(f"[bold yellow]Funnel Rules:[/bold yellow] {thresholds}")
 
     step = {
         "users": users,
@@ -91,15 +110,29 @@ def load(
     
     def cli_callback(stats):
         if int(stats['rps']) % 5 == 0:
-            msg = f"   >> Active Users: {stats['users']} | RPS: {stats['rps']:.1f} | Latency: {stats['avg_latency']:.0f}ms"
-
+            msg = f"   >> Active Users: {stats['users']} | RPS: {stats['rps']:.1f} | Latency: {stats['avg_latency']:.0f}ms | Fail: {stats['failed']}"
+            if chaos: msg += " (🔥)"
             print(msg, end="\r")
 
     try:
-        summary = asyncio.run(engine.start_scenario(url, [step], cli_callback))
+        summary = asyncio.run(engine.start_scenario(
+            url=url, 
+            steps=[step], 
+            stats_callback=cli_callback,
+            thresholds=thresholds,
+            chaos_config=chaos_config
+        ))
         
-        print(" " * 100)  
-        console.print("\n[bold green]✅ Test Completed Successfully![/bold green]")
+        summary["url"] = url
+        
+        print(" " * 120)  
+        
+        result_status = "UNKNOWN"
+        if "test_result" in summary:
+            result_status = summary["test_result"].get("status", "UNKNOWN").upper()
+            
+        status_style = "bold green" if result_status == "PASSED" else "bold red"
+        console.print(f"\n[{status_style}]✅ Test Completed! Final Status: {result_status}[/{status_style}]")
         
         table = Table(title="Execution Summary", show_header=True, header_style="bold magenta")
         table.add_column("Metric", style="cyan")
@@ -109,13 +142,52 @@ def load(
         table.add_row("Successful", f"[green]{summary['successful_requests']}[/green]")
         table.add_row("Failed", f"[red]{summary['failed_requests']}[/red]")
         table.add_row("Avg Response Time", f"{summary['avg_response_time_ms']:.2f} ms")
+        table.add_row("P95 Latency", f"{summary['p95_latency']:.2f} ms")
         table.add_row("Throughput", f"{summary['throughput_rps']:.2f} req/s")
         
         console.print(table)
+        
+        if result_status == "FAILED" and "test_result" in summary:
+            console.print("[red]Violations:[/red]")
+            for fail in summary["test_result"]["failures"]:
+                console.print(f"  - {fail}")
+
         write_to_cache("loadTest", summary)
+        write_to_cache("last_run_type", "load") 
         
     except Exception as e:
         console.print(f"\n[bold red]❌ Critical Error:[/bold red] {e}")
+
+@app.command()
+def ws(
+    url: Annotated[str, typer.Argument(help="WebSocket URL (ws://...)")],
+    message: Annotated[str, typer.Option(help="Message to send")] = "Ping",
+    duration: Annotated[int, typer.Option(help="Test duration in seconds")] = 5
+):
+    """🔌 Run WebSocket Stress Test."""
+    console.print(f"[bold magenta]🔌 Connecting to WebSocket: {url}[/bold magenta]")
+    
+    with Console().status("[bold green]Sending traffic...[/bold green]"):
+        res = asyncio.run(run_websocket_test(url, message, duration))
+    
+    status_color = "green" if res['status'] == 'success' else "red"
+    console.print(f"[{status_color}]Status: {res['status'].upper()}[/{status_color}]")
+    
+    table = Table(title="WebSocket Results", header_style="bold cyan")
+    table.add_column("Metric", style="white")
+    table.add_column("Value", style="yellow")
+    
+    table.add_row("Messages Sent", str(res['sent']))
+    table.add_row("Messages Received", str(res['received']))
+    table.add_row("Avg Latency", f"{res['avg_latency']:.2f} ms")
+    table.add_row("Errors", str(res['errors']))
+    
+    console.print(table)
+    
+    if res['logs']:
+        console.print("\n[dim]Recent Logs:[/dim]")
+        for l in res['logs'][-5:]:
+            console.print(f"  {l}")
 
 @app.command()
 def network(
@@ -167,18 +239,26 @@ def db(
     write_to_cache("dbTest", res)
 
 @app.command()
-def report(
-    format: Annotated[str, typer.Option(help="Output format: json or csv.")] = "json"
-):
-    """💾 Generates a consolidated report from the last test run."""
+def report():
+    """📄 Generates a Professional PDF Report (Dark Mode)."""
     cache_data = read_from_cache()
-    if not cache_data:
-        console.print("[yellow]⚠️ No test results found to report. Run a test first.[/yellow]")
+    
+    data_to_report = cache_data.get("loadTest")
+    if not data_to_report:
+
+        console.print("[yellow]⚠️ No recent Load Test data found. Run 'stormqa load ...' first.[/yellow]")
         raise typer.Exit()
     
-    filename = f"StormQA_CLI_Report.{format}"
-    message = generate_report(cache_data, filename)
-    console.print(f"[green]{message}[/green]")
+    console.print("[bold blue]🤖 Generating AI-Enhanced PDF Report...[/bold blue]")
+    
+    try:
+        pdf_path = generate_report(data_to_report)
+        console.print(f"\n[bold green]✅ Report Saved Successfully![/bold green]")
+        console.print(f"   📂 Path: [underline]{pdf_path}[/underline]")
+        
+        
+    except Exception as e:
+        console.print(f"[red]Error generating PDF: {e}[/red]")
 
 if __name__ == "__main__":
     app()

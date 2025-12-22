@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-white font-sans antialiased;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+  
+  input[type="number"] {
+    color-scheme: dark;
+  }
+}
+
+@layer components {
+  .glass-panel { @apply bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-xl; }
+  .glass-card { @apply bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl transition-all duration-300; }
+  .glass-input { @apply bg-black/20 border border-white/10 rounded-lg px-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all; }
+  .glass-btn { @apply bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-2 px-4 rounded-lg backdrop-blur-sm transition-all active:scale-95; }
+  .glass-btn-primary { @apply bg-blue-600/80 hover:bg-blue-600 border border-blue-400/30 text-white font-bold py-2 px-6 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)] backdrop-blur-md transition-all active:scale-95; }
+  
+  .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+}

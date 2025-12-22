@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stormqa"
-version = "2.0.0" 
+version = "3.0.0"
 authors = [
   { name="Pouya Rezapour", email="pouyarezapourr@gmail.com" },
 ]
-description = "⚡️ A zero-config, masterpiece tool for Load, Network, and DB testing."
+description = "⚡️ A zero-config, masterpiece tool for Load, Network, and DB testing (Modern Webview UI)."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { file = "LICENSE" } 
-keywords = ["testing", "qa", "load testing", "performance", "gui", "customtkinter"]
+license = { file = "LICENSE" }
+keywords = ["testing", "qa", "load testing", "performance", "gui", "webview", "react"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -20,16 +20,16 @@ classifiers = [
     "Topic :: Software Development :: Testing",
     "Environment :: Win32 (MS Windows)",
     "Environment :: MacOS X",
-    "Environment :: X11 Applications",
+    "Environment :: WebEnvironment",
 ]
 dependencies = [
     "typer[all]",
     "httpx",
-    "customtkinter",  
-    "matplotlib",     
+    "pywebview",  
     "packaging",
-    "pillow",  
-    "fpdf2"
+    "pillow",
+    "fpdf2",
+    "websockets"
 ]
 
 [project.scripts]
@@ -38,3 +38,7 @@ stormqa = "stormqa.main:app"
 [project.urls]
 Homepage = "https://github.com/pouyarer/StormQa"
 Repository = "https://github.com/pouyarer/StormQa"
+
+# --- بخش جدید و حیاتی برای معماری جدید ---
+[tool.setuptools.package-data]
+"stormqa.ui" = ["static/**/*", "templates/**/*", "*.html", "*.js", "*.css", "*.json"]
