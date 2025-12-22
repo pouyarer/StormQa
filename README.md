@@ -118,7 +118,7 @@ source venv/bin/activate
 Now that your environment is active, install the package:
 
 ```bash
-pip install stormqa
+pip install --upgrade stormqa
 
 ```
 
