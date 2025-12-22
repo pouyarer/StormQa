@@ -31,6 +31,7 @@ src/stormqa/ui/.pnp*
 src/stormqa/ui/build/
 src/stormqa/ui/dist/
 src/stormqa/ui/.env
+node_modules/
 src/stormqa/ui/.DS_Store
 
 *.db

@@ -39,6 +39,5 @@ stormqa = "stormqa.main:app"
 Homepage = "https://github.com/pouyarer/StormQa"
 Repository = "https://github.com/pouyarer/StormQa"
 
-# --- بخش جدید و حیاتی برای معماری جدید ---
 [tool.setuptools.package-data]
 "stormqa.ui" = ["static/**/*", "templates/**/*", "*.html", "*.js", "*.css", "*.json"]
