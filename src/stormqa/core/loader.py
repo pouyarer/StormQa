@@ -2,10 +2,9 @@ import asyncio
 import time
 import random
 import httpx
-import math
-import csv
 import json
 import re
+import csv
 from typing import Dict, Any, List, Optional, Callable
 
 class LoadTestEngine:
@@ -86,9 +85,9 @@ class LoadTestEngine:
 
                 if extracted_value:
                     self.scenario_vars[var_name] = str(extracted_value)
-                    # print(f"✅ [EXTRACTED] {var_name} = {extracted_value}")
         except Exception as e:
-            print(f"[Engine] Extraction Error: {e}")
+            pass
+            # print(f"[Engine] Extraction Error: {e}")
 
     def _evaluate_thresholds(self, metrics: dict, thresholds_str: str, raw_times: list) -> dict:
         if not thresholds_str:
@@ -99,12 +98,8 @@ class LoadTestEngine:
         
         for rule in rules:
             try:
-                if '<' in rule:
-                    metric_key, limit = rule.split('<')
-                    operator = 'lt'
-                elif '>' in rule:
-                    metric_key, limit = rule.split('>')
-                    operator = 'gt'
+                if '<' in rule: metric_key, limit, operator = *rule.split('<'), 'lt'
+                elif '>' in rule: metric_key, limit, operator = *rule.split('>'), 'gt'
                 else: continue
                 
                 metric_key = metric_key.strip().lower()
@@ -128,7 +123,7 @@ class LoadTestEngine:
                 if failed:
                     failures.append(f"{metric_key} ({actual_value:.1f}) failed limit {operator} {limit}")
             except Exception as e:
-                print(f"Threshold parse error: {e}")
+                pass
 
         return {"status": "failed" if failures else "passed", "failures": failures}
 
@@ -140,18 +135,18 @@ class LoadTestEngine:
 
         while not self._stop_event.is_set() and time.monotonic() < step_end_time:
             
-            # --- CHAOS INJECTION LOGIC  ---
+            # --- CHAOS INJECTION ---
             if chaos_config and chaos_config.get('enabled'):
                 if random.randint(0, 100) < int(chaos_config.get('rate', 0)):
                     c_type = chaos_config.get('type', 'latency')
-                    # print(f"🔥 [CHAOS] Injecting {c_type}")
                     if c_type == 'latency':
-                        await asyncio.sleep(random.uniform(0.5, 2.0)) # Lag
+                        await asyncio.sleep(random.uniform(0.5, 2.0))
                     elif c_type == 'exception':
+                        self.stats["total_requests"] += 1 # Count dropped request
                         self.stats["failed"] += 1
                         await asyncio.sleep(0.1)
-                        continue # Drop request (Simulate 500/Timeout)
-            # ------------------------------------
+                        continue 
+            # -----------------------
 
             request_start = time.monotonic()
             
@@ -165,9 +160,10 @@ class LoadTestEngine:
             
             final_data = data
             if data:
-                data_str = json.dumps(data)
-                injected_str = self._inject_variables(data_str, current_row)
-                try: final_data = json.loads(injected_str)
+                try:
+                    data_str = json.dumps(data)
+                    injected_str = self._inject_variables(data_str, current_row)
+                    final_data = json.loads(injected_str)
                 except: final_data = data
 
             try:
@@ -177,7 +173,7 @@ class LoadTestEngine:
                 else: response = await client.get(final_url, headers=final_headers)
                 
                 duration = (time.monotonic() - request_start) * 1000
-                self.stats["total_requests"] += 1
+                self.stats["total_requests"] += 1 # ✅ FIX: Count Total
                 
                 if extract and response.status_code < 400:
                     self._extract_from_response(response.text, extract)
@@ -198,6 +194,7 @@ class LoadTestEngine:
                     self.stats["failed"] += 1
 
             except Exception as e:
+                self.stats["total_requests"] += 1 # ✅ FIX: Count Total even on error
                 self.stats["failed"] += 1
             
             if think_time > 0:
@@ -236,6 +233,9 @@ class LoadTestEngine:
         limits = httpx.Limits(max_connections=max_users + 100, max_keepalive_connections=max_users + 100)
         timeout_config = httpx.Timeout(20.0, connect=10.0)
 
+        # ✅ FIX 1: لیست نگهدارنده تسک‌ها
+        active_tasks = []
+
         async with httpx.AsyncClient(limits=limits, timeout=timeout_config, follow_redirects=True, verify=False, trust_env=False) as client:
             for i, step in enumerate(steps):
                 if self._stop_event.is_set(): break
@@ -254,7 +254,9 @@ class LoadTestEngine:
                     
                     if current < needed:
                         for _ in range(needed - current):
-                            asyncio.create_task(self._user_session(client, url, think_val, step_end, method, headers, body, assertion, extract, chaos_config))
+                            # ✅ FIX 2: اضافه کردن تسک به لیست
+                            task = asyncio.create_task(self._user_session(client, url, think_val, step_end, method, headers, body, assertion, extract, chaos_config))
+                            active_tasks.append(task)
                             self.stats["current_users"] += 1
                     
                     if stats_callback:
@@ -273,12 +275,17 @@ class LoadTestEngine:
                 await asyncio.sleep(0.5)
 
             self._stop_event.set()
+            
+            # ✅ FIX 3: صبر برای اتمام تمام درخواست‌ها
+            if active_tasks:
+                await asyncio.gather(*active_tasks)
 
         total_time = time.monotonic() - self.stats["start_time"]
         avg_resp = sum(self.stats["response_times"]) / len(self.stats["response_times"]) if self.stats["response_times"] else 0
         percentiles = self._calculate_percentiles(self.stats["response_times"])
 
         metrics = {
+            "url": url,  # ✅ FIX 4: پاس دادن URL
             "total_duration_sec": total_time,
             "total_requests": self.stats["total_requests"],
             "successful_requests": self.stats["success"],

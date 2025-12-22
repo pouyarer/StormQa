@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stormqa"
-version = "3.0.0"
+version = "3.0.1"
 authors = [
   { name="Pouya Rezapour", email="pouyarezapourr@gmail.com" },
 ]
@@ -18,9 +18,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Testing",
-    "Environment :: Win32 (MS Windows)",
-    "Environment :: MacOS X",
-    "Environment :: WebEnvironment",
+    "Intended Audience :: Developers",
 ]
 dependencies = [
     "typer[all]",

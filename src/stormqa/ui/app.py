@@ -7,6 +7,7 @@ import json
 import shlex
 import time
 import webbrowser 
+from pathlib import Path
 
 try:
     from stormqa.core.loader import LoadTestEngine
@@ -17,6 +18,23 @@ try:
     from stormqa.reporters.main_reporter import generate_report
 except ImportError:
     pass
+
+# --- Helper function to save cache for CLI compatibility ---
+def write_to_json_cache(data):
+    cache_file = Path(".stormqa_cache.json")
+    try:
+        cache = {}
+        if cache_file.exists():
+            with open(cache_file, "r") as f:
+                cache = json.load(f)
+        
+        cache["loadTest"] = data
+        cache["last_run_type"] = "load"
+        
+        with open(cache_file, "w") as f:
+            json.dump(cache, f, indent=4)
+    except Exception as e:
+        print(f"Failed to write cache: {e}")
 
 class CurlParser:
     @staticmethod
@@ -124,9 +142,15 @@ class StormApi:
             self.global_stats["total_requests_sent"] += summary["total_requests"]
             self.global_stats["total_failures"] += summary["failed_requests"]
             self.global_stats["last_test_date"] = time.strftime("%Y-%m-%d %H:%M")
+            
+            # ذخیره در حافظه رم برای دسترسی سریع دکمه اکسپورت
             self.test_results_cache["Load Test"] = summary
             
+            # ذخیره در دیتابیس تاریخچه
             save_test_result(summary)
+            
+            # ✅ FIX 1: ذخیره در فایل جیسون تا اگر کاربر رفت تو ترمینال، اونجا هم ببینه
+            write_to_json_cache(summary)
 
             if self._window: self._window.evaluate_js(f"window.testFinished({json.dumps(summary)})")
         except Exception as e:
@@ -169,9 +193,16 @@ class StormApi:
 
     def export_report_pdf(self): 
         try:
-            path = generate_report(self.test_results_cache)
+            # ✅ FIX 2: فقط دیتای مربوط به Load Test رو می‌فرستیم، نه کل دیکشنری رو
+            data_to_report = self.test_results_cache.get("Load Test")
+            
+            if not data_to_report:
+                 return {"status": "error", "message": "No test data available to export."}
+
+            path = generate_report(data_to_report)
             return {"status": "success", "path": path}
-        except Exception as e: return {"status": "error", "message": str(e)}
+        except Exception as e: 
+            return {"status": "error", "message": str(e)}
 
 def start_gui():
     api = StormApi()
@@ -181,7 +212,7 @@ def start_gui():
     if not os.path.exists(icon_path): icon_path = None
 
     window = webview.create_window(
-        'StormQA v3.2', 
+        'StormQA v3', 
         url=os.path.join(base, 'dist', 'index.html'), 
         js_api=api, 
         width=1280, height=850, 
