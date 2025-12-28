@@ -8,7 +8,7 @@
 <br>
 *Zero-Config. Python Core. React UI. Infinite Power.*
 
-[![PyPI version](https://img.shields.io/pypi/v/stormqa?color=007EC6&label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/stormqa/)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/stormqa?period=total&units=NONE&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/stormqa)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![React](https://img.shields.io/badge/Frontend-React_18-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
