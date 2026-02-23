@@ -186,7 +186,7 @@ Building enterprise-grade tools requires coffee and dedication. Support the proj
 
 **[💎 Donate & Support](https://pay.oxapay.com/14009511)**
 
-Powered by **Testeto** | Developed by **[Pouya Rezapour](https://pouyarezapour.ir)**
+Powered by **[Testeto](https://testeto.ir)** | Developed by **[Pouya Rezapour](https://pouyarezapour.ir)**
 
 </div>
 
